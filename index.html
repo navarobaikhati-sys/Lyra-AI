@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lyra AI</title>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #030303;
+  --accent: #3b82f6; 
+  --accent-glow: rgba(59, 130, 246, 0.4);
+  --glass: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text-main: #ffffff;
+  --text-dim: #94a3b8;
+}
+
+* { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100dvh; /* Menggunakan dynamic viewport height untuk mobile */
+  background: radial-gradient(circle at 50% -20%, #1e293b, var(--bg) 80%);
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-container {
+  width: 100%;
+  height: 100%;
+  background: var(--glass);
+  backdrop-filter: blur(30px);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    width: 95vw;
+    max-width: 1000px;
+    height: 90vh;
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    box-shadow: 0 0 80px rgba(0,0,0,0.5);
+  }
+}
+
+.neon-title-bg {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  text-align: center;
+  pointer-events: none;
+  width: 90%;
+}
+
+.neon-title-bg h1 {
+  font-size: clamp(40px, 12vw, 100px);
+  font-weight: 800;
+  margin: 0;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(59, 130, 246, 0.2);
+  text-shadow: 0 0 30px var(--accent-glow);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background: rgba(0,0,0,0.4);
+  border-bottom: 1px solid var(--glass-border);
+  z-index: 10;
+}
+
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header img { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--accent); }
+.header .info strong { font-size: 15px; }
+.header .info span { font-size: 9px; color: var(--accent); text-transform: uppercase; font-weight: 700; }
+
+.chat {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+}
+
+.message { display: flex; gap: 10px; margin-bottom: 20px; animation: slideUp 0.3s ease; }
+.message.user { flex-direction: row-reverse; }
+
+.avatar { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--glass-border); }
+
+.msg-content { display: flex; flex-direction: column; max-width: 80%; }
+.message.user .msg-content { align-items: flex-end; }
+
+.sender-name { font-size: 10px; font-weight: 700; color: var(--text-dim); margin-bottom: 3px; }
+
+.bubble { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+.user .bubble { background: var(--accent); border-bottom-right-radius: 4px; }
+.bot .bubble { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
+
+/* FIX AREA INPUT */
+.input-area {
+  padding: 15px;
+  background: rgba(0,0,0,0.6);
+  border-top: 1px solid var(--glass-border);
+  z-index: 20;
+}
+
+.input-wrapper {
+  display: flex;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 4px;
+  align-items: center;
+}
+
+input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 12px 15px;
+  font-size: 15px;
+  outline: none;
+  min-width: 0; /* Mencegah input meluber di mobile */
+}
+
+select {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  padding: 0 10px;
+  font-size: 12px;
+  outline: none;
+  border-right: 1px solid var(--glass-border);
+}
+
+#sendBtn {
+  background: var(--accent);
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="neon-title-bg" id="bgLogo">
+    <h1>LYRA AI</h1>
+    <p>Neural Interface • Navaro</p>
+  </div>
+
+  <div class="header">
+    <div class="header-left">
+      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg">
+      <div class="info">
+        <strong>Lyra AI</strong><br>
+        <span>Active Session</span>
+      </div>
+    </div>
+    <button style="background:transparent; color:var(--text-dim); border:1px solid var(--glass-border); border-radius:8px; font-size:10px; padding:5px 10px;" onclick="clearChat()">Reset</button>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="input-area">
+    <div class="input-wrapper">
+      <select id="provider">
+        <option value="gemini">Gemini</option>
+        <option value="groq">Groq</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
+      <input id="input" placeholder="Neural message..." autocomplete="off">
+      <button id="sendBtn" onclick="send()">SEND</button>
+    </div>
+  </div>
+</div>
+
+<script>
+marked.setOptions({ breaks: true });
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const bgLogo = document.getElementById("bgLogo");
+const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook/chat";
+
+let chatHistory = JSON.parse(localStorage.getItem("lyra_chat_history")) || [];
+
+function toggleBgLogo() {
+  bgLogo.style.opacity = chat.innerHTML.trim() === "" ? "1" : "0.05";
+}
+
+function addMessage(text, type, isHistory = false) {
+  const msg = document.createElement("div");
+  msg.className = "message " + type;
+  const avatar = document.createElement("img");
+  avatar.className = "avatar";
+  avatar.src = type === "user" ? "https://i.pinimg.com/736x/2e/1c/f7/2e1cf728ab26ddd8bce93c7c4423389f.jpg" : "https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg";
+  
+  const content = document.createElement("div");
+  content.className = "msg-content";
+  const nameLabel = document.createElement("span");
+  nameLabel.className = "sender-name";
+  nameLabel.textContent = type === "user" ? "Navaro" : "Lyra";
+  
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  if (type === "bot") { bubble.innerHTML = marked.parse(text || ""); }
+  else { bubble.textContent = text; }
+
+  content.appendChild(nameLabel);
+  content.appendChild(bubble);
+  msg.appendChild(type === "user" ? content : avatar);
+  msg.appendChild(type === "user" ? avatar : content);
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+
+  if (!isHistory) {
+    chatHistory.push({ text, type });
+    localStorage.setItem("lyra_chat_history", JSON.stringify(chatHistory));
+  }
+  toggleBgLogo();
+}
+
+window.onload = () => {
+  if (chatHistory.length > 0) {
+    chatHistory.forEach(msg => addMessage(msg.text, msg.type, true));
+  }
+  toggleBgLogo();
+};
+
+async function send() {
+  const text = input.value.trim();
+  if (!text) return;
+  const provider = document.getElementById("provider").value;
+  addMessage(text, "user");
+  input.value = "";
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, provider })
+    });
+    const data = await res.json();
+    addMessage(data.response || data.output || "No signal...", "bot");
+  } catch { addMessage("❌ Error", "bot"); }
+}
+
+function clearChat() { if(confirm("Purge?")) { localStorage.removeItem("lyra_chat_history"); location.reload(); } }
+input.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+</script>
+</body>
+</html>
