@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Lyra AI</title>
+<title>Lyra AI • Neural Interface</title>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -22,190 +22,123 @@
 * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
 body {
-  margin: 0;
-  padding: 0;
-  height: 100dvh;
+  margin: 0; padding: 0; height: 100dvh;
   background: radial-gradient(circle at 50% -20%, #1e293b, var(--bg) 80%);
-  color: var(--text-main);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex; justify-content: center; align-items: center; overflow: hidden;
 }
 
 .app-container {
-  width: 100%;
-  height: 100%;
-  background: var(--glass);
-  backdrop-filter: blur(30px);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
+  width: 100%; height: 100%; background: var(--glass);
+  backdrop-filter: blur(30px); display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .app-container {
-    width: 95vw;
-    max-width: 1000px;
-    height: 90vh;
-    border: 1px solid var(--glass-border);
-    border-radius: 32px;
+    width: 95vw; max-width: 1000px; height: 90vh;
+    border: 1px solid var(--glass-border); border-radius: 32px;
     box-shadow: 0 0 80px rgba(0,0,0,0.5);
   }
 }
 
+/* FIX: LOGO TENGAH DENGAN OPACITY LEBIH JELAS */
 .neon-title-bg {
   position: absolute;
-  top: 45%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 0;
+  z-index: 2; /* Naikkan layer agar di atas background utama */
   text-align: center;
   pointer-events: none;
-  width: 90%;
+  width: 100%;
+  opacity: 0.25; /* Dinaikkan dari 0.1 agar lebih kelihatan */
 }
 
 .neon-title-bg h1 {
-  font-size: clamp(40px, 12vw, 100px);
+  font-size: clamp(50px, 15vw, 120px);
   font-weight: 800;
   margin: 0;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(59, 130, 246, 0.2);
-  text-shadow: 0 0 30px var(--accent-glow);
+  -webkit-text-stroke: 1.5px rgba(59, 130, 246, 0.5);
+  text-shadow: 0 0 40px var(--accent-glow);
+  letter-spacing: 5px;
 }
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 15px 20px;
-  background: rgba(0,0,0,0.4);
-  border-bottom: 1px solid var(--glass-border);
-  z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 20px; background: rgba(0,0,0,0.6);
+  border-bottom: 1px solid var(--glass-border); z-index: 10;
 }
 
 .header-left { display: flex; align-items: center; gap: 10px; }
 .header img { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--accent); }
-.header .info strong { font-size: 15px; }
-.header .info span { font-size: 9px; color: var(--accent); text-transform: uppercase; font-weight: 700; }
 
 .chat {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
+  flex: 1; padding: 20px; overflow-y: auto; z-index: 5;
+  display: flex; flex-direction: column; scroll-behavior: smooth;
+  position: relative; 
+  background: transparent; /* Pastikan background chat transparan agar logo terlihat */
 }
 
-.message { display: flex; gap: 10px; margin-bottom: 20px; animation: slideUp 0.3s ease; }
+.message { display: flex; gap: 12px; margin-bottom: 24px; animation: slideUp 0.3s ease; position: relative; z-index: 6; }
 .message.user { flex-direction: row-reverse; }
 
-.avatar { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--glass-border); flex-shrink: 0; }
+.avatar { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--glass-border); flex-shrink: 0; }
 
-.msg-content { display: flex; flex-direction: column; max-width: 80%; }
+.msg-content { display: flex; flex-direction: column; max-width: 75%; }
 .message.user .msg-content { align-items: flex-end; }
 
-.sender-name { font-size: 10px; font-weight: 700; color: var(--text-dim); margin-bottom: 3px; }
-
-.bubble { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
-.user .bubble { background: var(--accent); border-bottom-right-radius: 4px; }
-.bot .bubble { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
-
-/* PRIORITAS 1: Typing Indicator Style */
-#typing-indicator {
-  display: none;
-  font-size: 12px;
-  color: var(--accent);
-  margin-left: 45px;
-  margin-bottom: 15px;
-  animation: pulse 1.5s infinite;
+.sender-name { 
+  font-size: 11px; font-weight: 800; color: var(--text-dim); 
+  margin-bottom: 4px; letter-spacing: 0.5px; display: block;
 }
 
-.input-area {
-  padding: 15px;
-  background: rgba(0,0,0,0.6);
-  border-top: 1px solid var(--glass-border);
-  z-index: 20;
-}
+.bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+.user .bubble { background: var(--accent); border-top-right-radius: 4px; box-shadow: 0 4px 15px var(--accent-glow); }
+.bot .bubble { background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-top-left-radius: 4px; backdrop-filter: blur(5px); }
 
-.input-wrapper {
-  display: flex;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid var(--glass-border);
-  border-radius: 18px;
-  padding: 4px;
-  align-items: center;
-}
+.msg-meta { display: flex; gap: 8px; font-size: 9px; color: var(--text-dim); margin-top: 6px; align-items: center; font-weight: 600; }
+.user .msg-meta { flex-direction: row-reverse; }
+.model-tag { background: rgba(59, 130, 246, 0.2); color: var(--accent); padding: 1px 6px; border-radius: 4px; text-transform: uppercase; font-size: 8px; }
 
-/* PRIORITAS 2: Disable State Style */
-input:disabled { opacity: 0.5; cursor: not-allowed; }
-#sendBtn:disabled { background: var(--text-dim); opacity: 0.5; }
+.input-area { padding: 15px; background: rgba(0,0,0,0.8); border-top: 1px solid var(--glass-border); z-index: 20; }
+.input-wrapper { display: flex; background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border); border-radius: 18px; padding: 4px; align-items: center; }
 
-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: white;
-  padding: 12px 15px;
-  font-size: 15px;
-  outline: none;
-  min-width: 0;
-}
-
-select {
-  background: transparent;
-  color: var(--text-dim);
-  border: none;
-  padding: 0 10px;
-  font-size: 12px;
-  outline: none;
-  border-right: 1px solid var(--glass-border);
-}
-
-#sendBtn {
-  background: var(--accent);
-  border: none;
-  color: white;
-  padding: 10px 18px;
-  border-radius: 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
+input { flex: 1; background: transparent; border: none; color: white; padding: 12px 15px; font-size: 15px; outline: none; }
+select { background: #111; color: var(--text-dim); border: none; padding: 0 10px; font-size: 11px; outline: none; border-right: 1px solid var(--glass-border); border-radius: 14px 0 0 14px; cursor: pointer; }
+#sendBtn { background: var(--accent); border: none; color: white; padding: 10px 18px; border-radius: 14px; font-weight: 800; cursor: pointer; }
 
 @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 </style>
 </head>
 <body>
 
 <div class="app-container">
-  <div class="neon-title-bg" id="bgLogo">
+  <div class="neon-title-bg">
     <h1>LYRA AI</h1>
-    <p>Neural Interface • Navaro</p>
+    <p style="font-size: 10px; letter-spacing: 4px; color: var(--accent); font-weight: 800; margin-top: 10px;">PRODUCTION ENGINE</p>
   </div>
 
   <div class="header">
     <div class="header-left">
-      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg">
+      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg" alt="Lyra">
       <div class="info">
         <strong>Lyra AI</strong><br>
-        <span>Active Session</span>
+        <span style="font-size: 9px; color: var(--accent); font-weight: 800;">ACTIVE SESSION</span>
       </div>
     </div>
-    <button style="background:transparent; color:var(--text-dim); border:1px solid var(--glass-border); border-radius:8px; font-size:10px; padding:5px 10px;" onclick="clearChat()">Reset</button>
+    <button style="background:transparent; color:var(--text-dim); border:1px solid var(--glass-border); border-radius:8px; font-size:10px; padding:5px 10px; cursor:pointer;" onclick="clearChat()">Reset Memory</button>
   </div>
 
   <div class="chat" id="chat"></div>
   
-  <div id="typing-indicator">Lyra sedang mengetik...</div>
-
   <div class="input-area">
     <div class="input-wrapper">
       <select id="provider">
-        <option value="gemini">Gemini</option>
-        <option value="groq">Groq</option>
+        <option value="groq_primary">Groq (Primary)</option>
+        <option value="groq_backup">Groq (Backup)</option>
+        <option value="gemini">Gemini 2.0</option>
         <option value="openrouter">OpenRouter</option>
       </select>
       <input id="input" placeholder="Neural message..." autocomplete="off">
@@ -219,100 +152,90 @@ marked.setOptions({ breaks: true });
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
-const typingIndicator = document.getElementById("typing-indicator");
-const bgLogo = document.getElementById("bgLogo");
+const providerSelect = document.getElementById("provider");
+
+// URL PRODUCTION
 const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook/chat";
 
-let chatHistory = JSON.parse(localStorage.getItem("lyra_chat_history")) || [];
-
-function toggleBgLogo() {
-  bgLogo.style.opacity = chat.innerHTML.trim() === "" ? "1" : "0.05";
-}
-
-function addMessage(text, type, isHistory = false) {
+function addMessage(text, type, modelName = null) {
   const msg = document.createElement("div");
   msg.className = "message " + type;
+  
   const avatar = document.createElement("img");
   avatar.className = "avatar";
   avatar.src = type === "user" ? "https://i.pinimg.com/736x/2e/1c/f7/2e1cf728ab26ddd8bce93c7c4423389f.jpg" : "https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg";
   
   const content = document.createElement("div");
   content.className = "msg-content";
+  
   const nameLabel = document.createElement("span");
   nameLabel.className = "sender-name";
   nameLabel.textContent = type === "user" ? "Navaro" : "Lyra";
   
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  if (type === "bot") { bubble.innerHTML = marked.parse(text || ""); }
-  else { bubble.textContent = text; }
+  bubble.innerHTML = type === "bot" ? marked.parse(text || "...") : text;
+
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+  
+  const meta = document.createElement("div");
+  meta.className = "msg-meta";
+  let metaHTML = `<span>${timeStr}</span>`;
+  if (type === "bot" && modelName) {
+    metaHTML += `<span class="model-tag">${modelName}</span>`;
+  }
+  meta.innerHTML = metaHTML;
 
   content.appendChild(nameLabel);
   content.appendChild(bubble);
-  msg.appendChild(type === "user" ? content : avatar);
-  msg.appendChild(type === "user" ? avatar : content);
+  content.appendChild(meta);
+  
+  if (type === "user") {
+    msg.appendChild(content); msg.appendChild(avatar);
+  } else {
+    msg.appendChild(avatar); msg.appendChild(content);
+  }
+
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
-
-  if (!isHistory) {
-    chatHistory.push({ text, type });
-    localStorage.setItem("lyra_chat_history", JSON.stringify(chatHistory));
-  }
-  toggleBgLogo();
 }
-
-window.onload = () => {
-  if (chatHistory.length > 0) {
-    chatHistory.forEach(msg => addMessage(msg.text, msg.type, true));
-  }
-  toggleBgLogo();
-};
 
 async function send() {
   const text = input.value.trim();
   if (!text) return;
-  const provider = document.getElementById("provider").value;
+  const provider = providerSelect.value;
 
-  // --- PRIORITAS 2: Disable Input & Button ---
-  input.disabled = true;
-  sendBtn.disabled = true;
-  
+  input.disabled = true; sendBtn.disabled = true;
   addMessage(text, "user");
   input.value = "";
-
-  // --- PRIORITAS 1: Show Typing Indicator ---
-  typingIndicator.style.display = "block";
-  chat.scrollTop = chat.scrollHeight;
 
   try {
     const res = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, provider })
+      body: JSON.stringify({ message: text, provider: provider })
     });
 
-    if (!res.ok) throw new Error(res.status);
-
     const data = await res.json();
-    addMessage(data.response || data.output || "No signal...", "bot");
+    const modelUsed = data.model_used || provider.replace('_', ' ');
+    addMessage(data.response || data.output || "No signal...", "bot", modelUsed);
 
   } catch (error) {
-    // --- PRIORITAS 3: Error Message Manusiawi ---
-    let errorMsg = "Aduh, maaf ya.. koneksi aku lagi keganggu sebentar. Coba lagi ya? 😊";
-    if (error.message == "429") {
-        errorMsg = "Model ini lagi limit, coba ganti model lain ya sayang 😊";
-    }
-    addMessage(errorMsg, "bot");
+    addMessage("Error koneksi...", "bot", "System");
   } finally {
-    // --- FINAL: Restore State ---
-    typingIndicator.style.display = "none";
-    input.disabled = false;
-    sendBtn.disabled = false;
-    input.focus();
+    input.disabled = false; sendBtn.disabled = false; input.focus();
   }
 }
 
-function clearChat() { if(confirm("Purge history?")) { localStorage.removeItem("lyra_chat_history"); location.reload(); } }
+function clearChat() { 
+  if(confirm("Hapus memori?")) { 
+    chat.innerHTML = ""; 
+    localStorage.clear(); 
+    location.reload(); 
+  } 
+}
+
 input.addEventListener("keydown", e => { if (e.key === "Enter" && !input.disabled) send(); });
 </script>
 </body>
