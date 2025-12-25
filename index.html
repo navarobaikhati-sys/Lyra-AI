@@ -24,7 +24,7 @@
 body {
   margin: 0;
   padding: 0;
-  height: 100dvh; /* Menggunakan dynamic viewport height untuk mobile */
+  height: 100dvh;
   background: radial-gradient(circle at 50% -20%, #1e293b, var(--bg) 80%);
   color: var(--text-main);
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -102,7 +102,7 @@ body {
 .message { display: flex; gap: 10px; margin-bottom: 20px; animation: slideUp 0.3s ease; }
 .message.user { flex-direction: row-reverse; }
 
-.avatar { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--glass-border); }
+.avatar { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--glass-border); flex-shrink: 0; }
 
 .msg-content { display: flex; flex-direction: column; max-width: 80%; }
 .message.user .msg-content { align-items: flex-end; }
@@ -113,7 +113,16 @@ body {
 .user .bubble { background: var(--accent); border-bottom-right-radius: 4px; }
 .bot .bubble { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
 
-/* FIX AREA INPUT */
+/* PRIORITAS 1: Typing Indicator Style */
+#typing-indicator {
+  display: none;
+  font-size: 12px;
+  color: var(--accent);
+  margin-left: 45px;
+  margin-bottom: 15px;
+  animation: pulse 1.5s infinite;
+}
+
 .input-area {
   padding: 15px;
   background: rgba(0,0,0,0.6);
@@ -130,6 +139,10 @@ body {
   align-items: center;
 }
 
+/* PRIORITAS 2: Disable State Style */
+input:disabled { opacity: 0.5; cursor: not-allowed; }
+#sendBtn:disabled { background: var(--text-dim); opacity: 0.5; }
+
 input {
   flex: 1;
   background: transparent;
@@ -138,7 +151,7 @@ input {
   padding: 12px 15px;
   font-size: 15px;
   outline: none;
-  min-width: 0; /* Mencegah input meluber di mobile */
+  min-width: 0;
 }
 
 select {
@@ -162,6 +175,7 @@ select {
 }
 
 @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 </style>
 </head>
 <body>
@@ -184,6 +198,8 @@ select {
   </div>
 
   <div class="chat" id="chat"></div>
+  
+  <div id="typing-indicator">Lyra sedang mengetik...</div>
 
   <div class="input-area">
     <div class="input-wrapper">
@@ -202,6 +218,8 @@ select {
 marked.setOptions({ breaks: true });
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
+const sendBtn = document.getElementById("sendBtn");
+const typingIndicator = document.getElementById("typing-indicator");
 const bgLogo = document.getElementById("bgLogo");
 const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook/chat";
 
@@ -254,21 +272,48 @@ async function send() {
   const text = input.value.trim();
   if (!text) return;
   const provider = document.getElementById("provider").value;
+
+  // --- PRIORITAS 2: Disable Input & Button ---
+  input.disabled = true;
+  sendBtn.disabled = true;
+  
   addMessage(text, "user");
   input.value = "";
+
+  // --- PRIORITAS 1: Show Typing Indicator ---
+  typingIndicator.style.display = "block";
+  chat.scrollTop = chat.scrollHeight;
+
   try {
     const res = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text, provider })
     });
+
+    if (!res.ok) throw new Error(res.status);
+
     const data = await res.json();
     addMessage(data.response || data.output || "No signal...", "bot");
-  } catch { addMessage("❌ Error", "bot"); }
+
+  } catch (error) {
+    // --- PRIORITAS 3: Error Message Manusiawi ---
+    let errorMsg = "Aduh, maaf ya.. koneksi aku lagi keganggu sebentar. Coba lagi ya? 😊";
+    if (error.message == "429") {
+        errorMsg = "Model ini lagi limit, coba ganti model lain ya sayang 😊";
+    }
+    addMessage(errorMsg, "bot");
+  } finally {
+    // --- FINAL: Restore State ---
+    typingIndicator.style.display = "none";
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.focus();
+  }
 }
 
-function clearChat() { if(confirm("Purge?")) { localStorage.removeItem("lyra_chat_history"); location.reload(); } }
-input.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+function clearChat() { if(confirm("Purge history?")) { localStorage.removeItem("lyra_chat_history"); location.reload(); } }
+input.addEventListener("keydown", e => { if (e.key === "Enter" && !input.disabled) send(); });
 </script>
 </body>
 </html>
