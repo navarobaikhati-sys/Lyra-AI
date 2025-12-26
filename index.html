@@ -12,111 +12,106 @@
 :root {
   --bg: #030303;
   --accent: #3b82f6; 
-  --accent-glow: rgba(59, 130, 246, 0.4);
+  --accent-glow: rgba(59, 130, 246, 0.6);
   --glass: rgba(255, 255, 255, 0.02);
   --glass-border: rgba(255, 255, 255, 0.08);
   --text-main: #ffffff;
   --text-dim: #94a3b8;
 }
 
-* { box-sizing: border-box; transition: all 0.2s ease; }
+[data-theme="night"] {
+  --accent: #8b5cf6;
+  --accent-glow: rgba(139, 92, 246, 0.6);
+}
+
+* { box-sizing: border-box; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 
 body {
   margin: 0; padding: 0; height: 100dvh;
-  background: radial-gradient(circle at 50% -20%, #1e293b, var(--bg) 80%);
+  background: radial-gradient(circle at 50% -20%, var(--accent-glow), var(--bg) 90%);
   color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif;
   display: flex; justify-content: center; align-items: center; overflow: hidden;
 }
 
 .app-container {
   width: 100%; height: 100%; background: var(--glass);
-  backdrop-filter: blur(30px); display: flex; flex-direction: column;
+  backdrop-filter: blur(40px); display: flex; flex-direction: column;
   position: relative; overflow: hidden;
 }
 
 @media (min-width: 768px) {
-  .app-container {
-    width: 95vw; max-width: 1000px; height: 90vh;
-    border: 1px solid var(--glass-border); border-radius: 32px;
-  }
+  .app-container { width: 95vw; max-width: 1000px; height: 90vh; border: 1px solid var(--glass-border); border-radius: 32px; }
 }
 
 .neon-title-bg {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  z-index: 1; text-align: center; pointer-events: none; width: 100%; opacity: 0.2;
+  z-index: 1; text-align: center; pointer-events: none; width: 100%;
 }
-
 .neon-title-bg h1 {
-  font-size: clamp(40px, 15vw, 120px); font-weight: 800; margin: 0;
-  color: transparent; -webkit-text-stroke: 1.5px rgba(59, 130, 246, 0.5);
-  text-shadow: 0 0 30px var(--accent-glow);
+  font-size: clamp(50px, 18vw, 150px); font-weight: 900; margin: 0;
+  background: linear-gradient(to bottom, #fff 30%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px var(--accent-glow));
+  letter-spacing: -2px; opacity: 0.25;
 }
 
 .header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 15px; background: rgba(0,0,0,0.6);
-  border-bottom: 1px solid var(--glass-border); z-index: 10;
+  padding: 15px; background: rgba(0,0,0,0.7); border-bottom: 1px solid var(--glass-border); z-index: 10;
 }
 
-.header img { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--accent); }
+.chat { flex: 1; padding: 20px; overflow-y: auto; z-index: 5; display: flex; flex-direction: column; gap: 20px; }
 
-.chat {
-  flex: 1; padding: 15px; overflow-y: auto; z-index: 5;
-  display: flex; flex-direction: column; background: transparent;
-}
+/* BUBBLE CHAT DESIGN */
+.message { display: flex; gap: 10px; width: 100%; }
+.message.bot { align-items: flex-start; }
+.message.user { justify-content: flex-end; align-items: flex-start; }
 
-.message { display: flex; gap: 10px; margin-bottom: 20px; z-index: 6; animation: slideUp 0.3s ease; }
-.message.user { flex-direction: row-reverse; }
-.avatar { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; border: 1px solid var(--glass-border); }
+.chat-avatar { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--accent); object-fit: cover; }
 .msg-content { display: flex; flex-direction: column; max-width: 80%; }
-.message.user .msg-content { align-items: flex-end; }
-.sender-name { font-size: 10px; font-weight: 800; color: var(--text-dim); margin-bottom: 4px; }
 
-/* FIX PAPAN GAME */
-.bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
-.bot .bubble { 
-  background: rgba(255,255,255,0.08); 
-  border: 1px solid var(--glass-border); 
-  border-top-left-radius: 4px; 
-  backdrop-filter: blur(5px);
-  white-space: pre-wrap; /* Menjaga baris baru dari AI agar papan tidak hancur */
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
+.msg-author { font-size: 10px; font-weight: 800; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .msg-author { align-self: flex-end; color: #fff; opacity: 0.7; }
 
-/* Mengatur angka dan simbol papan agar tebal dan sejajar sempurna */
-.bot .bubble strong, .bot .bubble b { 
-  color: var(--accent); 
-  font-weight: 800; 
-  font-family: monospace; /* Font khusus angka agar lebar sama */
-  font-size: 18px;
-}
+.bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; position: relative; }
+.bot .bubble { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-top-left-radius: 2px; backdrop-filter: blur(10px); }
+.user .bubble { background: var(--accent); border-top-right-radius: 2px; box-shadow: 0 5px 15px var(--accent-glow); color: white; }
 
-.user .bubble { background: var(--accent); border-top-right-radius: 4px; box-shadow: 0 4px 15px var(--accent-glow); }
-.msg-meta { font-size: 8px; color: var(--text-dim); margin-top: 4px; font-weight: 600; }
+#typing-indicator { display: none; font-size: 10px; font-weight: 800; color: var(--accent); padding: 0 20px 10px; text-transform: uppercase; letter-spacing: 2px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-#typing-indicator { display: none; font-size: 11px; color: var(--accent); padding: 0 20px 10px; font-weight: 700; }
+.input-area { padding: 15px; background: rgba(0,0,0,0.9); border-top: 1px solid var(--glass-border); z-index: 20; }
+.input-wrapper { display: flex; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-radius: 18px; padding: 6px; align-items: center; gap: 8px; }
+select { background: #111; color: #fff; border: none; padding: 8px; font-size: 10px; border-radius: 10px; width: 90px; outline: none; }
+input { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 14px; }
+#sendBtn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 14px; font-weight: 800; cursor: pointer; }
 
-.input-area { padding: 12px; background: rgba(0,0,0,0.8); border-top: 1px solid var(--glass-border); z-index: 20; }
-.input-wrapper { display: flex; background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border); border-radius: 15px; padding: 4px; align-items: center; width: 100%; }
-
-select { background: #111; color: var(--text-dim); border: none; padding: 8px; font-size: 10px; outline: none; border-right: 1px solid var(--glass-border); border-radius: 12px 0 0 12px; width: 85px; flex-shrink: 0; }
-input { flex: 1; background: transparent; border: none; color: white; padding: 10px; font-size: 14px; outline: none; min-width: 0; }
-#sendBtn { background: var(--accent); border: none; color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; flex-shrink: 0; }
-
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+#status-bar { font-size: 10px; color: var(--accent); font-weight: 800; }
+.btn-reset { background: transparent; color: var(--text-dim); border: 1px solid var(--glass-border); padding: 5px 10px; border-radius: 8px; font-size: 9px; font-weight: 700; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<div class="app-container">
+<div class="app-container" id="main-frame">
   <div class="neon-title-bg"><h1>LYRA AI</h1></div>
 
   <div class="header">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg">
-      <div><strong>Lyra AI</strong><br><span style="font-size:8px; color:var(--accent);">ACTIVE SESSION</span></div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg" width="30" style="border-radius:8px; border: 1px solid var(--accent);">
+      <div>
+        <strong style="font-size:13px;">Lyra Interface</strong><br>
+        <span id="status-bar">Syncing...</span>
+      </div>
     </div>
-    <button style="background:transparent; color:var(--text-dim); border:1px solid var(--glass-border); border-radius:6px; font-size:9px; padding:4px 8px;" onclick="clearChat()">Reset</button>
+    <div style="display:flex; gap:8px;">
+        <select id="provider">
+            <option value="groq_primary">Groq 1</option>
+            <option value="groq_backup">Groq 2</option>
+            <option value="gemini">Gemini</option>
+            <option value="openrouter">OpenR</option>
+        </select>
+        <button class="btn-reset" onclick="location.reload()">RESET</button>
+    </div>
   </div>
 
   <div class="chat" id="chat"></div>
@@ -124,92 +119,79 @@ input { flex: 1; background: transparent; border: none; color: white; padding: 1
   
   <div class="input-area">
     <div class="input-wrapper">
-      <select id="provider">
-        <option value="groq_primary">Groq 1</option>
-        <option value="groq_backup">Groq 2</option>
-        <option value="gemini">Gemini</option>
-        <option value="openrouter">OpenR</option>
-      </select>
-      <input id="input" placeholder="Message..." autocomplete="off">
-      <button id="sendBtn" onclick="send()">SEND</button>
+      <input id="input" placeholder="Tulis pesan..." autocomplete="off">
+      <button id="sendBtn" onclick="send()">Send</button>
     </div>
   </div>
 </div>
 
 <script>
-// Konfigurasi agar Markdown tetap menjaga spasi papan
 marked.setOptions({ breaks: true, gfm: true });
-
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
-const sendBtn = document.getElementById("sendBtn");
-const providerSelect = document.getElementById("provider");
 const typingIndicator = document.getElementById("typing-indicator");
+const mainFrame = document.getElementById("main-frame");
+const statusBar = document.getElementById("status-bar");
 
-const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook/chat";
-
-function addMessage(text, type, modelName = null) {
-  const msg = document.createElement("div");
-  msg.className = "message " + type;
-  const avatarSrc = type === "user" ? "https://i.pinimg.com/736x/2e/1c/f7/2e1cf728ab26ddd8bce93c7c4423389f.jpg" : "https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg";
-  
-  const now = new Date();
-  const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-
-  // Gunakan marked tapi paksa hasil render agar menjaga white-space
-  const content = type === 'bot' ? marked.parse(text) : text;
-
-  msg.innerHTML = `
-    <img src="${avatarSrc}" class="avatar">
-    <div class="msg-content">
-      <span class="sender-name">${type === 'user' ? 'Navaro' : 'Lyra'}</span>
-      <div class="bubble">${content}</div>
-      <div class="msg-meta">${timeStr} ${modelName ? `• ${modelName}` : ''}</div>
-    </div>
-  `;
-  
-  if(type === "user") msg.style.flexDirection = "row-reverse";
-  chat.appendChild(msg);
-  chat.scrollTop = chat.scrollHeight;
+function syncTime() {
+    const now = new Date();
+    const hour = now.getHours();
+    if (hour >= 18 || hour < 6) mainFrame.setAttribute('data-theme', 'night');
+    else mainFrame.removeAttribute('data-theme');
+    statusBar.innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 }
+setInterval(syncTime, 1000); syncTime();
 
 async function send() {
   const text = input.value.trim();
   if (!text) return;
-  const provider = providerSelect.value;
   
-  const currentTimeContext = new Date().toLocaleString('id-ID', { 
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', 
-    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' 
-  });
-
-  input.disabled = true; sendBtn.disabled = true;
-  addMessage(text, "user");
+  addMsg(text, 'user');
   input.value = "";
   typingIndicator.style.display = "block";
+  chat.scrollTop = chat.scrollHeight;
 
   try {
-    const res = await fetch(WEBHOOK_URL, {
+    const res = await fetch("https://navly.app.n8n.cloud/webhook/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        message: text, 
-        provider: provider,
-        current_time: currentTimeContext 
-      })
+      body: JSON.stringify({ message: text, provider: document.getElementById("provider").value })
     });
     const data = await res.json();
-    addMessage(data.response || data.output || "Offline", "bot", data.model_used || provider);
+    addMsg(data.response || data.output, 'bot');
   } catch (e) {
-    addMessage("Error koneksi...", "bot");
+    addMsg("System Error: Neural link interrupted.", 'bot');
   } finally {
     typingIndicator.style.display = "none";
-    input.disabled = false; sendBtn.disabled = false; input.focus();
   }
 }
 
-function clearChat() { if(confirm("Reset?")) { chat.innerHTML = ""; location.reload(); } }
-input.addEventListener("keydown", e => { if (e.key === "Enter" && !input.disabled) send(); });
+function addMsg(text, type) {
+  const msgDiv = document.createElement("div");
+  msgDiv.className = `message ${type}`;
+  
+  let html = '';
+  if (type === 'bot') {
+    html = `
+      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg" class="chat-avatar">
+      <div class="msg-content">
+        <span class="msg-author">Lyra AI</span>
+        <div class="bubble">${marked.parse(text)}</div>
+      </div>`;
+  } else {
+    html = `
+      <div class="msg-content">
+        <span class="msg-author">Navaro</span>
+        <div class="bubble">${text}</div>
+      </div>`;
+  }
+  
+  msgDiv.innerHTML = html;
+  chat.appendChild(msgDiv);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+input.addEventListener("keydown", e => { if(e.key === "Enter") send(); });
 </script>
 </body>
 </html>
