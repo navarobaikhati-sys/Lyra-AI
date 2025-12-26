@@ -71,24 +71,27 @@ body {
 .msg-content { display: flex; flex-direction: column; max-width: 80%; }
 .message.user .msg-content { align-items: flex-end; }
 .sender-name { font-size: 10px; font-weight: 800; color: var(--text-dim); margin-bottom: 4px; }
+
+/* FIX PAPAN GAME */
 .bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
-
-/* PERBAIKAN PAPAN GAME (TIC TAC TOE) */
-.bubble p { margin: 5px 0; }
-.bubble strong, .bubble b { color: var(--accent); font-weight: 800; }
-
-/* CSS agar papan 1|2|3 tetap rapi dan sejajar */
 .bot .bubble { 
   background: rgba(255,255,255,0.08); 
   border: 1px solid var(--glass-border); 
   border-top-left-radius: 4px; 
   backdrop-filter: blur(5px);
-  white-space: pre-wrap; /* Menjaga spasi dan baris baru dari AI */
-  font-variant-numeric: tabular-nums; /* Angka punya lebar yang sama */
+  white-space: pre-wrap; /* Menjaga baris baru dari AI agar papan tidak hancur */
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Mengatur angka dan simbol papan agar tebal dan sejajar sempurna */
+.bot .bubble strong, .bot .bubble b { 
+  color: var(--accent); 
+  font-weight: 800; 
+  font-family: monospace; /* Font khusus angka agar lebar sama */
+  font-size: 18px;
 }
 
 .user .bubble { background: var(--accent); border-top-right-radius: 4px; box-shadow: 0 4px 15px var(--accent-glow); }
-
 .msg-meta { font-size: 8px; color: var(--text-dim); margin-top: 4px; font-weight: 600; }
 
 #typing-indicator { display: none; font-size: 11px; color: var(--accent); padding: 0 20px 10px; font-weight: 700; }
@@ -134,11 +137,8 @@ input { flex: 1; background: transparent; border: none; color: white; padding: 1
 </div>
 
 <script>
-// Konfigurasi marked agar tidak merusak baris baru papan game
-marked.setOptions({ 
-  breaks: true,
-  gfm: true 
-});
+// Konfigurasi agar Markdown tetap menjaga spasi papan
+marked.setOptions({ breaks: true, gfm: true });
 
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
@@ -156,7 +156,7 @@ function addMessage(text, type, modelName = null) {
   const now = new Date();
   const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
 
-  // Gunakan marked untuk bot, tapi pastikan spasi papan game terjaga
+  // Gunakan marked tapi paksa hasil render agar menjaga white-space
   const content = type === 'bot' ? marked.parse(text) : text;
 
   msg.innerHTML = `
