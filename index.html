@@ -82,8 +82,12 @@ body {
 .input-area { padding: 12px; background: rgba(0,0,0,0.8); border-top: 1px solid var(--glass-border); z-index: 20; }
 .input-wrapper { display: flex; background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border); border-radius: 15px; padding: 4px; align-items: center; width: 100%; }
 
-/* Penyesuaian agar tidak geser ke kanan di mobile */
-select { background: #111; color: var(--text-dim); border: none; padding: 8px; font-size: 10px; outline: none; border-right: 1px solid var(--glass-border); border-radius: 12px 0 0 12px; width: 85px; flex-shrink: 0; }
+/* Style Dropdown */
+.controls-group { display: flex; flex-shrink: 0; }
+select { background: #111; color: var(--text-dim); border: none; padding: 8px; font-size: 10px; outline: none; border-right: 1px solid var(--glass-border); width: 75px; flex-shrink: 0; }
+#provider { border-radius: 12px 0 0 12px; }
+#voiceMode { width: 85px; }
+
 input { flex: 1; background: transparent; border: none; color: white; padding: 10px; font-size: 14px; outline: none; min-width: 0; }
 #sendBtn { background: var(--accent); border: none; color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; flex-shrink: 0; }
 
@@ -108,12 +112,18 @@ input { flex: 1; background: transparent; border: none; color: white; padding: 1
   
   <div class="input-area">
     <div class="input-wrapper">
-      <select id="provider">
-        <option value="groq_primary">Groq 1</option>
-        <option value="groq_backup">Groq 2</option>
-        <option value="gemini">Gemini</option>
-        <option value="openrouter">OpenR</option>
-      </select>
+      <div class="controls-group">
+        <select id="provider">
+          <option value="groq_primary">Groq 1</option>
+          <option value="groq_backup">Groq 2</option>
+          <option value="gemini">Gemini</option>
+          <option value="openrouter">OpenR</option>
+        </select>
+        <select id="voiceMode">
+          <option value="off">Teks Saja</option>
+          <option value="on">Suara On</option>
+        </select>
+      </div>
       <input id="input" placeholder="Message..." autocomplete="off">
       <button id="sendBtn" onclick="send()">SEND</button>
     </div>
@@ -126,10 +136,22 @@ const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const providerSelect = document.getElementById("provider");
+const voiceSelect = document.getElementById("voiceMode");
 const typingIndicator = document.getElementById("typing-indicator");
 
-// Sesuaikan URL webhook n8n kamu (production/test)
-const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook/chat";
+const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook-test/chat";
+
+function speak(text) {
+  if (voiceSelect.value === "off") return;
+  
+  const cleanText = text.replace(/[#*`_]/g, "").replace(/<[^>]*>?/gm, "");
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = 'id-ID';
+  utterance.pitch = 1.1;
+  utterance.rate = 1.0;
+  
+  window.speechSynthesis.speak(utterance);
+}
 
 function addMessage(text, type, modelName = null) {
   const msg = document.createElement("div");
@@ -151,6 +173,8 @@ function addMessage(text, type, modelName = null) {
   if(type === "user") msg.style.flexDirection = "row-reverse";
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
+
+  if(type === "bot") speak(text);
 }
 
 async function send() {
@@ -158,7 +182,6 @@ async function send() {
   if (!text) return;
   const provider = providerSelect.value;
   
-  // Mengambil waktu lokal lengkap (Hari, Tanggal, Jam)
   const currentTimeContext = new Date().toLocaleString('id-ID', { 
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', 
     hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' 
@@ -168,6 +191,7 @@ async function send() {
   addMessage(text, "user");
   input.value = "";
   typingIndicator.style.display = "block";
+  window.speechSynthesis.cancel();
 
   try {
     const res = await fetch(WEBHOOK_URL, {
@@ -176,7 +200,7 @@ async function send() {
       body: JSON.stringify({ 
         message: text, 
         provider: provider,
-        current_time: currentTimeContext // Mengirim data waktu ke n8n
+        current_time: currentTimeContext 
       })
     });
     const data = await res.json();
