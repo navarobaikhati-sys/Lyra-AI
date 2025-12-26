@@ -65,51 +65,29 @@ body {
   display: flex; flex-direction: column; background: transparent;
 }
 
-.message { display: flex; gap: 10px; margin-bottom: 20px; z-index: 6; }
+.message { display: flex; gap: 10px; margin-bottom: 20px; z-index: 6; animation: slideUp 0.3s ease; }
 .message.user { flex-direction: row-reverse; }
-.avatar { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+.avatar { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; border: 1px solid var(--glass-border); }
 .msg-content { display: flex; flex-direction: column; max-width: 80%; }
 .message.user .msg-content { align-items: flex-end; }
 .sender-name { font-size: 10px; font-weight: 800; color: var(--text-dim); margin-bottom: 4px; }
-.bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
-.user .bubble { background: var(--accent); border-top-right-radius: 4px; }
+.bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+.user .bubble { background: var(--accent); border-top-right-radius: 4px; box-shadow: 0 4px 15px var(--accent-glow); }
 .bot .bubble { background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-top-left-radius: 4px; backdrop-filter: blur(5px); }
 
-/* --- FIX MOBILE INPUT AREA --- */
+.msg-meta { font-size: 8px; color: var(--text-dim); margin-top: 4px; font-weight: 600; }
+
+#typing-indicator { display: none; font-size: 11px; color: var(--accent); padding: 0 20px 10px; font-weight: 700; }
+
 .input-area { padding: 12px; background: rgba(0,0,0,0.8); border-top: 1px solid var(--glass-border); z-index: 20; }
-.input-wrapper { 
-  display: flex; 
-  background: rgba(255,255,255,0.07); 
-  border: 1px solid var(--glass-border); 
-  border-radius: 15px; 
-  padding: 4px; 
-  align-items: center;
-  width: 100%;
-}
+.input-wrapper { display: flex; background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border); border-radius: 15px; padding: 4px; align-items: center; width: 100%; }
 
-select { 
-  background: #111; color: var(--text-dim); border: none; 
-  padding: 8px; font-size: 10px; outline: none; 
-  border-right: 1px solid var(--glass-border); 
-  border-radius: 12px 0 0 12px;
-  width: 80px; /* Batasi lebar dropdown agar tidak makan tempat */
-  flex-shrink: 0;
-}
+/* Penyesuaian agar tidak geser ke kanan di mobile */
+select { background: #111; color: var(--text-dim); border: none; padding: 8px; font-size: 10px; outline: none; border-right: 1px solid var(--glass-border); border-radius: 12px 0 0 12px; width: 85px; flex-shrink: 0; }
+input { flex: 1; background: transparent; border: none; color: white; padding: 10px; font-size: 14px; outline: none; min-width: 0; }
+#sendBtn { background: var(--accent); border: none; color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; flex-shrink: 0; }
 
-input { 
-  flex: 1; /* Biarkan input mengambil sisa ruang */
-  background: transparent; border: none; color: white; 
-  padding: 10px; font-size: 14px; outline: none; 
-  min-width: 0; /* Penting agar input bisa mengecil di mobile */
-}
-
-#sendBtn { 
-  background: var(--accent); border: none; color: white; 
-  padding: 8px 15px; border-radius: 12px; font-weight: 800; 
-  font-size: 12px; cursor: pointer; flex-shrink: 0;
-}
-
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
@@ -126,12 +104,13 @@ input {
   </div>
 
   <div class="chat" id="chat"></div>
+  <div id="typing-indicator">Lyra is thinking...</div>
   
   <div class="input-area">
     <div class="input-wrapper">
       <select id="provider">
-        <option value="groq_primary">Groq</option>
-        <option value="groq_backup">Backup</option>
+        <option value="groq_primary">Groq 1</option>
+        <option value="groq_backup">Groq 2</option>
         <option value="gemini">Gemini</option>
         <option value="openrouter">OpenR</option>
       </select>
@@ -147,7 +126,9 @@ const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const providerSelect = document.getElementById("provider");
+const typingIndicator = document.getElementById("typing-indicator");
 
+// Sesuaikan URL webhook n8n kamu (production/test)
 const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook/chat";
 
 function addMessage(text, type, modelName = null) {
@@ -155,14 +136,15 @@ function addMessage(text, type, modelName = null) {
   msg.className = "message " + type;
   const avatarSrc = type === "user" ? "https://i.pinimg.com/736x/2e/1c/f7/2e1cf728ab26ddd8bce93c7c4423389f.jpg" : "https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg";
   
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+
   msg.innerHTML = `
     <img src="${avatarSrc}" class="avatar">
     <div class="msg-content">
       <span class="sender-name">${type === 'user' ? 'Navaro' : 'Lyra'}</span>
       <div class="bubble">${type === 'bot' ? marked.parse(text) : text}</div>
-      <div style="font-size:8px; color:var(--text-dim); margin-top:4px;">
-        ${new Date().getHours()}:${new Date().getMinutes()} ${modelName ? `<span style="color:var(--accent)">• ${modelName}</span>` : ''}
-      </div>
+      <div class="msg-meta">${timeStr} ${modelName ? `• ${modelName}` : ''}</div>
     </div>
   `;
   
@@ -175,26 +157,39 @@ async function send() {
   const text = input.value.trim();
   if (!text) return;
   const provider = providerSelect.value;
+  
+  // Mengambil waktu lokal lengkap (Hari, Tanggal, Jam)
+  const currentTimeContext = new Date().toLocaleString('id-ID', { 
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' 
+  });
+
   input.disabled = true; sendBtn.disabled = true;
   addMessage(text, "user");
   input.value = "";
+  typingIndicator.style.display = "block";
 
   try {
     const res = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, provider: provider })
+      body: JSON.stringify({ 
+        message: text, 
+        provider: provider,
+        current_time: currentTimeContext // Mengirim data waktu ke n8n
+      })
     });
     const data = await res.json();
     addMessage(data.response || data.output || "Offline", "bot", data.model_used || provider);
   } catch (e) {
     addMessage("Error koneksi...", "bot");
   } finally {
+    typingIndicator.style.display = "none";
     input.disabled = false; sendBtn.disabled = false; input.focus();
   }
 }
 
-function clearChat() { if(confirm("Reset?")) { chat.innerHTML = ""; localStorage.clear(); location.reload(); } }
+function clearChat() { if(confirm("Reset?")) { chat.innerHTML = ""; location.reload(); } }
 input.addEventListener("keydown", e => { if (e.key === "Enter" && !input.disabled) send(); });
 </script>
 </body>
