@@ -45,14 +45,14 @@ body {
 
 .neon-title-bg {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  z-index: 1; text-align: center; pointer-events: none; width: 100%;
+  z-index: 0; text-align: center; pointer-events: none; width: 100%;
 }
 .neon-title-bg h1 {
-  font-size: clamp(50px, 18vw, 150px); font-weight: 900; margin: 0;
-  background: linear-gradient(to bottom, #fff 30%, var(--accent) 100%);
+  font-size: clamp(60px, 20vw, 160px); font-weight: 900; margin: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.8) 20%, var(--accent) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 20px var(--accent-glow));
-  letter-spacing: -2px; opacity: 0.25;
+  filter: drop-shadow(0 0 25px var(--accent-glow));
+  letter-spacing: -2px; opacity: 0.4;
 }
 
 .header {
@@ -60,10 +60,9 @@ body {
   padding: 15px; background: rgba(0,0,0,0.7); border-bottom: 1px solid var(--glass-border); z-index: 10;
 }
 
-.chat { flex: 1; padding: 20px; overflow-y: auto; z-index: 5; display: flex; flex-direction: column; gap: 20px; }
+.chat { flex: 1; padding: 20px; overflow-y: auto; z-index: 5; display: flex; flex-direction: column; gap: 20px; background: transparent; }
 
-/* BUBBLE CHAT DESIGN */
-.message { display: flex; gap: 10px; width: 100%; }
+.message { display: flex; gap: 10px; width: 100%; z-index: 6; }
 .message.bot { align-items: flex-start; }
 .message.user { justify-content: flex-end; align-items: flex-start; }
 
@@ -74,7 +73,7 @@ body {
 .user .msg-author { align-self: flex-end; color: #fff; opacity: 0.7; }
 
 .bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; position: relative; }
-.bot .bubble { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-top-left-radius: 2px; backdrop-filter: blur(10px); }
+.bot .bubble { background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-top-left-radius: 2px; backdrop-filter: blur(12px); }
 .user .bubble { background: var(--accent); border-top-right-radius: 2px; box-shadow: 0 5px 15px var(--accent-glow); color: white; }
 
 #typing-indicator { display: none; font-size: 10px; font-weight: 800; color: var(--accent); padding: 0 20px 10px; text-transform: uppercase; letter-spacing: 2px; animation: pulse 1.5s infinite; }
@@ -151,11 +150,28 @@ async function send() {
   typingIndicator.style.display = "block";
   chat.scrollTop = chat.scrollHeight;
 
+  // Mendapatkan waktu lokal yang sangat spesifik
+  const timeNow = new Date().toLocaleString('id-ID', { 
+    timeZone: 'Asia/Jakarta',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+
   try {
     const res = await fetch("https://navly.app.n8n.cloud/webhook/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, provider: document.getElementById("provider").value })
+      body: JSON.stringify({ 
+        message: text, 
+        provider: document.getElementById("provider").value,
+        // Kita kirimkan variabel waktu yang lebih deskriptif
+        current_time: timeNow 
+      })
     });
     const data = await res.json();
     addMsg(data.response || data.output, 'bot');
