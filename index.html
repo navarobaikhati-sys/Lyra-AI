@@ -72,8 +72,22 @@ body {
 .message.user .msg-content { align-items: flex-end; }
 .sender-name { font-size: 10px; font-weight: 800; color: var(--text-dim); margin-bottom: 4px; }
 .bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+
+/* PERBAIKAN PAPAN GAME (TIC TAC TOE) */
+.bubble p { margin: 5px 0; }
+.bubble strong, .bubble b { color: var(--accent); font-weight: 800; }
+
+/* CSS agar papan 1|2|3 tetap rapi dan sejajar */
+.bot .bubble { 
+  background: rgba(255,255,255,0.08); 
+  border: 1px solid var(--glass-border); 
+  border-top-left-radius: 4px; 
+  backdrop-filter: blur(5px);
+  white-space: pre-wrap; /* Menjaga spasi dan baris baru dari AI */
+  font-variant-numeric: tabular-nums; /* Angka punya lebar yang sama */
+}
+
 .user .bubble { background: var(--accent); border-top-right-radius: 4px; box-shadow: 0 4px 15px var(--accent-glow); }
-.bot .bubble { background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-top-left-radius: 4px; backdrop-filter: blur(5px); }
 
 .msg-meta { font-size: 8px; color: var(--text-dim); margin-top: 4px; font-weight: 600; }
 
@@ -120,14 +134,18 @@ input { flex: 1; background: transparent; border: none; color: white; padding: 1
 </div>
 
 <script>
-marked.setOptions({ breaks: true });
+// Konfigurasi marked agar tidak merusak baris baru papan game
+marked.setOptions({ 
+  breaks: true,
+  gfm: true 
+});
+
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const providerSelect = document.getElementById("provider");
 const typingIndicator = document.getElementById("typing-indicator");
 
-// Sesuaikan URL webhook n8n kamu
 const WEBHOOK_URL = "https://navly.app.n8n.cloud/webhook/chat";
 
 function addMessage(text, type, modelName = null) {
@@ -138,11 +156,14 @@ function addMessage(text, type, modelName = null) {
   const now = new Date();
   const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
 
+  // Gunakan marked untuk bot, tapi pastikan spasi papan game terjaga
+  const content = type === 'bot' ? marked.parse(text) : text;
+
   msg.innerHTML = `
     <img src="${avatarSrc}" class="avatar">
     <div class="msg-content">
       <span class="sender-name">${type === 'user' ? 'Navaro' : 'Lyra'}</span>
-      <div class="bubble">${type === 'bot' ? marked.parse(text) : text}</div>
+      <div class="bubble">${content}</div>
       <div class="msg-meta">${timeStr} ${modelName ? `• ${modelName}` : ''}</div>
     </div>
   `;
@@ -157,7 +178,6 @@ async function send() {
   if (!text) return;
   const provider = providerSelect.value;
   
-  // Konteks waktu lengkap tetap dikirim agar Lyra pintar
   const currentTimeContext = new Date().toLocaleString('id-ID', { 
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', 
     hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' 
@@ -175,7 +195,7 @@ async function send() {
       body: JSON.stringify({ 
         message: text, 
         provider: provider,
-        current_time: currentTimeContext // Data waktu terkirim ke n8n
+        current_time: currentTimeContext 
       })
     });
     const data = await res.json();
