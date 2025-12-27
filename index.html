@@ -60,7 +60,7 @@ body {
   padding: 15px; background: rgba(0,0,0,0.7); border-bottom: 1px solid var(--glass-border); z-index: 10;
 }
 
-.chat { flex: 1; padding: 20px; overflow-y: auto; z-index: 5; display: flex; flex-direction: column; gap: 20px; background: transparent; }
+.chat { flex: 1; padding: 20px; overflow-y: auto; z-index: 5; display: flex; flex-direction: column; gap: 12px; background: transparent; }
 
 .message { display: flex; gap: 10px; width: 100%; z-index: 6; }
 .message.bot { align-items: flex-start; }
@@ -76,13 +76,24 @@ body {
 .bot .bubble { background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-top-left-radius: 2px; backdrop-filter: blur(12px); }
 .user .bubble { background: var(--accent); border-top-right-radius: 2px; box-shadow: 0 5px 15px var(--accent-glow); color: white; }
 
+.sticker-img { max-width: 180px; border-radius: 12px; display: block; margin-top: 5px; }
+
+/* REVISED PREVIEW BOX */
+#preview-container {
+  display: none; padding: 10px 15px; background: rgba(0,0,0,0.8);
+  border-top: 1px solid var(--glass-border);
+}
+#img-preview {
+  width: 60px; height: 60px; border-radius: 8px; border: 1px solid var(--accent); object-fit: cover;
+}
+
 #typing-indicator { display: none; font-size: 10px; font-weight: 800; color: var(--accent); padding: 0 20px 10px; text-transform: uppercase; letter-spacing: 2px; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-.input-area { padding: 15px; background: rgba(0,0,0,0.9); border-top: 1px solid var(--glass-border); z-index: 20; }
-.input-wrapper { display: flex; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-radius: 18px; padding: 6px; align-items: center; gap: 8px; }
+.input-area { background: rgba(0,0,0,0.9); border-top: 1px solid var(--glass-border); z-index: 20; }
+.input-wrapper { display: flex; padding: 12px; align-items: center; gap: 8px; }
 select { background: #111; color: #fff; border: none; padding: 8px; font-size: 10px; border-radius: 10px; width: 90px; outline: none; }
-input { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 14px; }
+input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 14px; color: white; padding: 10px 15px; outline: none; font-size: 14px; }
 #sendBtn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 14px; font-weight: 800; cursor: pointer; }
 
 #status-bar { font-size: 10px; color: var(--accent); font-weight: 800; }
@@ -117,8 +128,11 @@ input { flex: 1; background: transparent; border: none; color: white; padding: 1
   <div id="typing-indicator">Lyra is thinking...</div>
   
   <div class="input-area">
+    <div id="preview-container">
+        <img id="img-preview" src="">
+    </div>
     <div class="input-wrapper">
-      <input id="input" placeholder="Tulis pesan..." autocomplete="off">
+      <input id="input" placeholder="Tulis pesan atau paste link foto..." autocomplete="off">
       <button id="sendBtn" onclick="send()">Send</button>
     </div>
   </div>
@@ -128,6 +142,8 @@ input { flex: 1; background: transparent; border: none; color: white; padding: 1
 marked.setOptions({ breaks: true, gfm: true });
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
+const previewContainer = document.getElementById("preview-container");
+const imgPreview = document.getElementById("img-preview");
 const typingIndicator = document.getElementById("typing-indicator");
 const mainFrame = document.getElementById("main-frame");
 const statusBar = document.getElementById("status-bar");
@@ -141,37 +157,39 @@ function syncTime() {
 }
 setInterval(syncTime, 1000); syncTime();
 
+// DETEKSI LINK UNTUK PREVIEW (SUPPORT PINTEREST)
+input.addEventListener('input', () => {
+    const text = input.value;
+    const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|avif|com\/736x\/.*))/gi;
+    const match = text.match(imgRegex);
+    if (match) {
+        imgPreview.src = match[0];
+        previewContainer.style.display = 'block';
+    } else {
+        previewContainer.style.display = 'none';
+    }
+});
+
 async function send() {
   const text = input.value.trim();
   if (!text) return;
   
   addMsg(text, 'user');
   input.value = "";
+  previewContainer.style.display = 'none';
   typingIndicator.style.display = "block";
   chat.scrollTop = chat.scrollHeight;
 
-  // Mendapatkan waktu lokal yang sangat spesifik
   const timeNow = new Date().toLocaleString('id-ID', { 
-    timeZone: 'Asia/Jakarta',
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
+    timeZone: 'Asia/Jakarta', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
   });
 
   try {
     const res = await fetch("https://navly.app.n8n.cloud/webhook/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        message: text, 
-        provider: document.getElementById("provider").value,
-        // Kita kirimkan variabel waktu yang lebih deskriptif
-        current_time: timeNow 
-      })
+      body: JSON.stringify({ message: text, provider: document.getElementById("provider").value, current_time: timeNow })
     });
     const data = await res.json();
     addMsg(data.response || data.output, 'bot');
@@ -183,26 +201,32 @@ async function send() {
 }
 
 function addMsg(text, type) {
+  const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|avif|com\/736x\/.*))/gi;
+  const match = text.match(imgRegex);
+
+  if (type === 'bot' && match) {
+    const cleanText = text.replace(imgRegex, '').trim();
+    if (cleanText) renderBubble(cleanText, type, false);
+    match.forEach(url => {
+      renderBubble(`<img src="${url}" class="sticker-img" onerror="this.style.display='none'">`, type, true);
+    });
+  } else {
+    renderBubble(text, type, false);
+  }
+}
+
+function renderBubble(content, type, isSticker) {
   const msgDiv = document.createElement("div");
   msgDiv.className = `message ${type}`;
-  
-  let html = '';
-  if (type === 'bot') {
-    html = `
-      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg" class="chat-avatar">
-      <div class="msg-content">
-        <span class="msg-author">Lyra AI</span>
-        <div class="bubble">${marked.parse(text)}</div>
-      </div>`;
-  } else {
-    html = `
-      <div class="msg-content">
-        <span class="msg-author">Navaro</span>
-        <div class="bubble">${text}</div>
-      </div>`;
-  }
-  
-  msgDiv.innerHTML = html;
+  const finalContent = (type === 'bot' && !isSticker) ? marked.parse(content) : content;
+
+  msgDiv.innerHTML = `
+    ${type === 'bot' ? '<img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg" class="chat-avatar">' : ''}
+    <div class="msg-content">
+      <span class="msg-author">${type === 'bot' ? 'Lyra AI' : 'Navaro'}</span>
+      <div class="bubble" style="${isSticker ? 'background:transparent; border:none; padding:0; box-shadow:none;' : ''}">${finalContent}</div>
+    </div>`;
+
   chat.appendChild(msgDiv);
   chat.scrollTop = chat.scrollHeight;
 }
