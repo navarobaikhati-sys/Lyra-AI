@@ -10,55 +10,100 @@
 
 <style>
 :root {
-  --bg: #030303;
+  /* WARNA BARU: Deep Midnight (Tidak hitam pekat) */
+  --bg: #0b0e14; 
   --accent: #3b82f6; 
-  --accent-glow: rgba(59, 130, 246, 0.6);
-  --glass: rgba(255, 255, 255, 0.02);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --text-main: #ffffff;
+  --accent-glow: rgba(59, 130, 246, 0.4);
+  --glass: rgba(15, 23, 42, 0.6); 
+  --glass-border: rgba(59, 130, 246, 0.3);
+  --text-main: #e2e8f0; /* Putih lembut agar tidak silau */
   --text-dim: #94a3b8;
 }
 
 [data-theme="night"] {
+  --bg: #0f0a1a; 
   --accent: #8b5cf6;
-  --accent-glow: rgba(139, 92, 246, 0.6);
+  --accent-glow: rgba(139, 92, 246, 0.4);
+  --glass-border: rgba(139, 92, 246, 0.4);
 }
 
 * { box-sizing: border-box; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 
 body {
   margin: 0; padding: 0; height: 100dvh;
-  background: radial-gradient(circle at 50% -20%, var(--accent-glow), var(--bg) 90%);
+  /* Background gradient yang lebih halus */
+  background: radial-gradient(circle at 50% 50%, #1e293b 0%, var(--bg) 100%);
   color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif;
   display: flex; justify-content: center; align-items: center; overflow: hidden;
 }
 
+/* FITUR 1: BACKGROUND ANIMASI ORBS */
+.orb-container {
+  position: fixed; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; filter: blur(80px);
+}
+.orb {
+  position: absolute; border-radius: 50%; opacity: 0.4; animation: move 20s infinite alternate;
+}
+.orb-1 { width: 400px; height: 400px; background: var(--accent-glow); top: -10%; left: -10%; }
+.orb-2 { width: 300px; height: 300px; background: #4f46e5; bottom: -5%; right: -5%; animation-delay: -5s; }
+@keyframes move {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(100px, 50px) scale(1.2); }
+}
+
 .app-container {
   width: 100%; height: 100%; background: var(--glass);
-  backdrop-filter: blur(40px); display: flex; flex-direction: column;
+  backdrop-filter: blur(25px); display: flex; flex-direction: column;
   position: relative; overflow: hidden;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 30px var(--accent-glow), inset 0 0 20px rgba(0,0,0,0.2);
 }
 
 @media (min-width: 768px) {
-  .app-container { width: 95vw; max-width: 1000px; height: 90vh; border: 1px solid var(--glass-border); border-radius: 32px; }
+  .app-container { width: 95vw; max-width: 1000px; height: 90vh; border-radius: 32px; }
 }
 
+/* FITUR 5: EFEK GLITCH & GLOW PADA JUDUL */
 .neon-title-bg {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   z-index: 0; text-align: center; pointer-events: none; width: 100%;
 }
-.neon-title-bg h1 {
+.glitch {
   font-size: clamp(60px, 20vw, 160px); font-weight: 900; margin: 0;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.8) 20%, var(--accent) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 25px var(--accent-glow));
-  letter-spacing: -2px; opacity: 0.4;
+  color: white; opacity: 0.2; letter-spacing: -2px; position: relative;
+  text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent-glow);
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.glitch::before, .glitch::after {
+  content: "LYRA AI"; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+.glitch::before { left: 2px; text-shadow: -2px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 5s infinite linear alternate-reverse; }
+.glitch::after { left: -2px; text-shadow: -2px 0 #00fff9; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 2s infinite linear alternate-reverse; }
+@keyframes glitch-anim {
+  0% { clip: rect(10px, 9999px, 30px, 0); }
+  20% { clip: rect(70px, 9999px, 90px, 0); }
+  100% { clip: rect(40px, 9999px, 50px, 0); }
 }
 
 .header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 15px; background: rgba(0,0,0,0.7); border-bottom: 1px solid var(--glass-border); z-index: 10;
+  padding: 15px; background: rgba(15, 23, 42, 0.8); border-bottom: 1.5px solid var(--accent); z-index: 10;
 }
+
+/* FITUR 2: STATS BAR */
+.stats-bar {
+  padding: 8px 20px; display: flex; gap: 15px; background: rgba(15, 23, 42, 0.6); 
+  border-bottom: 1px solid var(--glass-border); z-index: 10; align-items: center;
+}
+.stat-item { font-size: 9px; font-weight: 800; letter-spacing: 1px; color: var(--text-dim); display: flex; align-items: center; gap: 5px; }
+.stat-value { color: var(--accent); text-transform: uppercase; text-shadow: 0 0 5px var(--accent); }
+.progress-bg { width: 60px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 
 .chat { flex: 1; padding: 20px; overflow-y: auto; z-index: 5; display: flex; flex-direction: column; gap: 12px; background: transparent; }
 
@@ -66,50 +111,62 @@ body {
 .message.bot { align-items: flex-start; }
 .message.user { justify-content: flex-end; align-items: flex-start; }
 
-.chat-avatar { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--accent); object-fit: cover; }
+.chat-avatar { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--accent); object-fit: cover; box-shadow: 0 0 10px var(--accent-glow); }
 .msg-content { display: flex; flex-direction: column; max-width: 80%; }
 
 .msg-author { font-size: 10px; font-weight: 800; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 .user .msg-author { align-self: flex-end; color: #fff; opacity: 0.7; }
 
 .bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; position: relative; }
-.bot .bubble { background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-top-left-radius: 2px; backdrop-filter: blur(12px); }
+.bot .bubble { background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); border-top-left-radius: 2px; backdrop-filter: blur(12px); }
 .user .bubble { background: var(--accent); border-top-right-radius: 2px; box-shadow: 0 5px 15px var(--accent-glow); color: white; }
 
-.sticker-img { max-width: 180px; border-radius: 12px; display: block; margin-top: 5px; }
+.sticker-img { max-width: 180px; border-radius: 12px; display: block; margin-top: 5px; border: 1px solid var(--glass-border); }
 
-/* REVISED PREVIEW BOX */
 #preview-container {
-  display: none; padding: 10px 15px; background: rgba(0,0,0,0.8);
-  border-top: 1px solid var(--glass-border);
+  display: none; padding: 10px 15px; background: rgba(15, 23, 42, 0.9);
+  border-top: 1px solid var(--accent);
 }
 #img-preview {
   width: 60px; height: 60px; border-radius: 8px; border: 1px solid var(--accent); object-fit: cover;
 }
 
-#typing-indicator { display: none; font-size: 10px; font-weight: 800; color: var(--accent); padding: 0 20px 10px; text-transform: uppercase; letter-spacing: 2px; animation: pulse 1.5s infinite; }
+#typing-indicator { display: none; font-size: 10px; font-weight: 800; color: var(--accent); padding: 0 20px 10px; text-transform: uppercase; letter-spacing: 2px; animation: pulse 1.5s infinite; text-shadow: 0 0 5px var(--accent); }
 @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-.input-area { background: rgba(0,0,0,0.9); border-top: 1px solid var(--glass-border); z-index: 20; }
+.input-area { background: rgba(15, 23, 42, 0.95); border-top: 1.5px solid var(--accent); z-index: 20; }
 .input-wrapper { display: flex; padding: 12px; align-items: center; gap: 8px; }
-select { background: #111; color: #fff; border: none; padding: 8px; font-size: 10px; border-radius: 10px; width: 90px; outline: none; }
-input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 14px; color: white; padding: 10px 15px; outline: none; font-size: 14px; }
-#sendBtn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 14px; font-weight: 800; cursor: pointer; }
+select { background: #1a2233; color: #fff; border: 1px solid var(--glass-border); padding: 8px; font-size: 10px; border-radius: 10px; width: 90px; outline: none; }
 
-#status-bar { font-size: 10px; color: var(--accent); font-weight: 800; }
+textarea { 
+  flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 14px; 
+  color: white; padding: 10px 15px; outline: none; font-size: 14px; resize: none; 
+  font-family: inherit; line-height: 1.4; max-height: 150px; overflow-y: hidden;
+}
+textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+#sendBtn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 14px; font-weight: 800; cursor: pointer; height: 40px; box-shadow: 0 0 15px var(--accent-glow); }
+
+#status-bar { font-size: 10px; color: var(--accent); font-weight: 800; text-shadow: 0 0 5px var(--accent); }
 .btn-reset { background: transparent; color: var(--text-dim); border: 1px solid var(--glass-border); padding: 5px 10px; border-radius: 8px; font-size: 9px; font-weight: 700; cursor: pointer; }
+.btn-reset:hover { border-color: var(--accent); color: white; }
 </style>
 </head>
 <body>
 
+<div class="orb-container">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+</div>
+
 <div class="app-container" id="main-frame">
-  <div class="neon-title-bg"><h1>LYRA AI</h1></div>
+  <div class="neon-title-bg"><h1 class="glitch">LYRA AI</h1></div>
 
   <div class="header">
     <div style="display:flex; align-items:center; gap:10px;">
-      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg" width="30" style="border-radius:8px; border: 1px solid var(--accent);">
+      <img src="https://i.pinimg.com/736x/7d/43/5a/7d435a92133c1c27c802183f7213d7df.jpg" width="30" style="border-radius:8px; border: 1.5px solid var(--accent); box-shadow: 0 0 10px var(--accent-glow);">
       <div>
-        <strong style="font-size:13px;">Lyra Interface</strong><br>
+        <strong style="font-size:13px; letter-spacing: 0.5px;">Lyra Interface</strong><br>
         <span id="status-bar">Syncing...</span>
       </div>
     </div>
@@ -124,6 +181,15 @@ input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--gla
     </div>
   </div>
 
+  <div class="stats-bar">
+      <div class="stat-item">MOOD: <span class="stat-value">🥰 LOVING</span></div>
+      <div class="stat-item" style="flex:1; justify-content:flex-end;">
+          AFFECTION: 
+          <div class="progress-bg"><div class="progress-fill" style="width: 85%;"></div></div>
+      </div>
+      <div class="stat-item">CORE: <span class="stat-value" style="color:#22c55e; text-shadow: 0 0 5px #22c55e;">STABLE</span></div>
+  </div>
+
   <div class="chat" id="chat"></div>
   <div id="typing-indicator">Lyra is thinking...</div>
   
@@ -132,7 +198,7 @@ input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--gla
         <img id="img-preview" src="">
     </div>
     <div class="input-wrapper">
-      <input id="input" placeholder="Tulis pesan atau paste link foto..." autocomplete="off">
+      <textarea id="input" placeholder="Tulis pesan... (Shift+Enter untuk baris baru)" autocomplete="off" rows="1"></textarea>
       <button id="sendBtn" onclick="send()">Send</button>
     </div>
   </div>
@@ -157,9 +223,11 @@ function syncTime() {
 }
 setInterval(syncTime, 1000); syncTime();
 
-// DETEKSI LINK UNTUK PREVIEW (SUPPORT PINTEREST)
-input.addEventListener('input', () => {
-    const text = input.value;
+input.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+    
+    const text = this.value;
     const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|avif|com\/736x\/.*))/gi;
     const match = text.match(imgRegex);
     if (match) {
@@ -176,6 +244,7 @@ async function send() {
   
   addMsg(text, 'user');
   input.value = "";
+  input.style.height = 'auto';
   previewContainer.style.display = 'none';
   typingIndicator.style.display = "block";
   chat.scrollTop = chat.scrollHeight;
@@ -231,7 +300,12 @@ function renderBubble(content, type, isSticker) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-input.addEventListener("keydown", e => { if(e.key === "Enter") send(); });
+input.addEventListener("keydown", e => { 
+    if (e.key === "Enter" && !e.shiftKey) { 
+        e.preventDefault(); 
+        send();
+    } 
+});
 </script>
 </body>
 </html>
