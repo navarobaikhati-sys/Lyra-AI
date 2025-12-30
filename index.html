@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Lyra AI • Neural Full Interface</title>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -37,7 +37,7 @@ body {
 
 body::after {
   content: ""; position: fixed; inset: 0; pointer-events: none;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2"/></filter><rect width="120" height="120" filter="url(%23n)" opacity=".04"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2"/></filter><rect width="120" height="120" filter="url(%23n)" opacity=".04"/></svg>');
   z-index: 99; opacity: 0.5;
 }
 
@@ -45,16 +45,15 @@ body::after {
   position: absolute; top: 50%; left: 50%; 
   transform: translate(-50%, -50%); 
   z-index: 1; pointer-events: none;
-  width: 100%; text-align: center; /* Memastikan title ditengah */
+  width: 100%; text-align: center;
 }
 
-/* FIX BUG TITLE POTONG DI MOBILE */
 .glitch { 
-  font-size: clamp(40px, 15vw, 180px); /* Ukuran minimal diperkecil agar tidak potong */
+  font-size: clamp(40px, 15vw, 180px); 
   font-weight: 900; color: white; 
   opacity: 0.05; letter-spacing: -2px;
   animation: float 6s infinite ease-in-out;
-  white-space: nowrap; /* Menjaga teks tetap satu baris */
+  white-space: nowrap;
 }
 
 @keyframes float { 50% { transform: translateY(-20px); opacity: 0.08; } }
@@ -64,15 +63,15 @@ body::after {
 }
 
 .header { 
-  display: flex; align-items: center; justify-content: space-between; 
   padding: 15px 20px; background: rgba(10, 10, 15, 0.85); 
   backdrop-filter: blur(25px); border-bottom: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: space-between;
 }
 
 .stats-bar { 
   padding: 10px 20px; display: flex; gap: 15px; 
   background: rgba(139, 92, 246, 0.05); border-bottom: 1px solid rgba(255,255,255,0.05); 
-  font-size: 9px; font-weight: 600; letter-spacing: 0.5px;
+  font-size: 9px; font-weight: 600;
 }
 
 .chat { 
@@ -80,7 +79,6 @@ body::after {
   display: flex; flex-direction: column; gap: 20px;
 }
 
-/* RESPONSIVE PADDING UNTUK LAYAR BESAR */
 @media (min-width: 768px) {
   .chat { padding: 30px 15%; }
   .input-area { padding: 20px 15% 40px !important; }
@@ -120,16 +118,17 @@ select#provider {
   outline: none;
 }
 
-/* FIX BUG PROMPT AREA DI MOBILE */
+/* REVISI: AREA PROMPT DINAIKKAN AGAR TIDAK KETUTUP NAVIGASI MOBILE */
 .input-area { 
-  padding: 15px 5% 25px; /* Padding lebih kecil di mobile agar layar terpakai maksimal */
-  background: transparent; 
+  padding: 15px 5% calc(35px + env(safe-area-inset-bottom)); /* Menaikkan jarak bawah */
+  background: linear-gradient(transparent, var(--bg)); 
 }
 
 .input-wrapper { 
   display: flex; gap: 10px; align-items: flex-end; 
-  background: rgba(20, 20, 30, 0.8); padding: 8px 15px; border-radius: 20px;
+  background: rgba(20, 20, 30, 0.9); padding: 8px 15px; border-radius: 20px;
   border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 textarea { 
