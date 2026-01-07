@@ -546,11 +546,8 @@ pre code {
   </div>
   <div style="display:flex; align-items:center; gap:10px;">
     <select id="provider">
-        <option value="groq_primary">Groq Primary</option>
-        <option value="groq_backup">Groq Backup</option>
-        <option value="lyra_qwen">Lyra Coder</option>
-        <option value="openr_primary" selected>Lyra Coder 2</option>
-        <option value="gemini">Lyra UX</option>
+        <option value="chat">Lyra Chat</option>
+        <option value="coder">Lyra Coder</option>
     </select>
     <button onclick="location.reload()" style="
         background: rgba(255, 255, 255, 0.05);
@@ -714,7 +711,7 @@ async function send() {
     
     try {
         // Send to backend
-        const res = await fetch("https://navhuy.app.n8n.cloud/webhook/chat", {
+        const res = await fetch("https://navhuy.app.n8n.cloud/webhook-test/chat", {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json" 
